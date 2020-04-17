@@ -38,6 +38,20 @@ public class Image {
 
 	}
 
+	// constructeur avec un bufferedImage
+	public Image(BufferedImage img, String imgPath, String srcPath) throws IOException {
+		this.imgPath = imgPath;
+		this.srcPath = srcPath;
+
+		StringBuffer str = new StringBuffer(imgPath);// recuperation du nom de l image a partir de son chemin
+		str.delete(0, str.lastIndexOf(File.separator) + 1);
+		imgName = str.toString();
+		File o = new File(imgPath);
+
+		this.img = img;
+
+	}
+
 	/*
 	 * methode pour sauvegarder un histogramme d'une image
 	 */
@@ -157,6 +171,24 @@ public class Image {
 		return imgName;
 	}
 
+	/**
+	 * methode pour enregistrer une image
+	 * 
+	 * 
+	 */
+
+	public void enregistreImage() {
+
+		File f = new File(this.rename("retouche.jpg"));
+
+		try {
+			ImageIO.write(this.img, "png", f);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public int getPixelValue(int i, int j) {
 
 		Color c = new Color(img.getRGB(i, j));
@@ -178,6 +210,7 @@ public class Image {
 		Image img = new Image("src/ressource/escalier1.jpg", "escalier");
 		img.createGrayscaleImage();
 		img.createNBImage(100);
+
 	}
 
 	public String rename(String name) {

@@ -10,23 +10,16 @@ import util.Util;
  * classe qui décrit le filtre Sobel vertical
  *
  */
-public class SobelFiltre extends Filtre {
+public class SobelFiltreX extends Filtre {
 
-	public SobelFiltre(Image src) {
+	public SobelFiltreX(Image src) {
 		super(src);
 	}
 
 	@Override
-	public BufferedImage displayFiltre() {
+	public BufferedImage displayFiltre(String conversionChoix) {
 
-		BufferedImage br = null;
-		try {
-			// image en noir
-			br = super.getSrcImage().createNBImage(100).getImg();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		BufferedImage br = super.conversion(conversionChoix);
 	
 		int pixelValue;
 		for (int i = 1; i < br.getWidth() - 1; i++) {
@@ -37,6 +30,7 @@ public class SobelFiltre extends Filtre {
 				br.setRGB(i, j, pixelValue);
 			}
 		}
+		super.setResultatFiltre(br);
 		return br;
 	}
 
@@ -49,11 +43,14 @@ public class SobelFiltre extends Filtre {
 	}
 
 	public static void main(String[] args) throws IOException {
-		Image img = new Image("src/ressource/escalier6.jpg", "test");
+		Image img = new Image("src/ressource/escalier1.jpg", "test");
 		
-		SobelFiltre test = new SobelFiltre(img);
-		Util.display(test.displayFiltre());
-
+		SobelFiltreX test = new SobelFiltreX(img);
+		
+		BufferedImage br = test.displayFiltre("");
+		Util.display(br);
+		
+		test.enregistreResultat("test1.jpg");
 	}
 
 }
