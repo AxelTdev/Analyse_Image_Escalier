@@ -14,10 +14,11 @@ import javax.swing.JLabel;
 import util.Util;
 
 /*
- * classe principale que analyse les pixels de l'images selon les filtres à appliquer
+ * classe qui analyse les pixels de l'images selon les filtres à appliquer
  */
 public class AppliqueurFiltre {
 	private Image img;
+	private BufferedImage brModif;
 
 	private double[] histoCouleur;
 	private double[] histoNB;
@@ -29,6 +30,7 @@ public class AppliqueurFiltre {
 	 */
 	public AppliqueurFiltre(Image img) throws IOException {
 		this.img = img;
+		this.brModif = null;
 		this.histoCouleur = new double[256];
 		this.histoNB = new double[2];
 	}

@@ -12,6 +12,13 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import util.Util;
+
+/**
+ * 
+ * classe décrivant une image
+ *
+ */
 public class Image {
 	private String srcPath;
 	private String imgPath;
@@ -52,14 +59,51 @@ public class Image {
 		return histo;
 	}
 
-	public static Image createGrayscaleImage(String imgPath) throws IOException {// Cree une autre image, correpondant a
-																					// une image en couleur, en nuance
-																					// de gris
+	public Image createNBImage(int seuil) throws IOException {// Cree une autre image, correpondant a
+		// une image en NB
 		String grayscaleImagePath = null;
-		BufferedImage image = null;
-		File o = new File(imgPath);
+		BufferedImage image = this.img;
 
-		image = (ImageIO.read(o));
+		BufferedImage grayscaleImage = new BufferedImage(image.getWidth(), image.getHeight(),
+				BufferedImage.TYPE_INT_RGB);// creation de l'image
+
+		for (int i = 0; i < image.getWidth(); i++) {
+			for (int j = 0; j < image.getHeight(); j++) {
+
+				Color c = new Color(image.getRGB(i, j));
+
+				int r = c.getRed();
+
+				int nb;
+				if (r >= seuil) {
+					nb = 255;
+				} else {
+					nb = 0;
+				}
+
+				Color gColor = new Color(nb, nb, nb);
+				grayscaleImage.setRGB(i, j, gColor.getRGB()); // parametrer la nuance grise du pixel concerné
+
+			}
+		}
+
+		grayscaleImagePath = this.rename("NoirEtBlanc.jpg");// creation
+		// du
+		// chemin
+		// de l
+		// image
+
+		ImageIO.write(grayscaleImage, "jpg", new File(grayscaleImagePath));
+
+		return new Image(grayscaleImagePath, imgName);
+
+	}
+
+	public Image createGrayscaleImage() throws IOException {// Cree une autre image, correpondant a
+															// une image en couleur, en nuance
+															// de gris
+		String grayscaleImagePath = null;
+		BufferedImage image = this.img;
 
 		BufferedImage grayscaleImage = new BufferedImage(image.getWidth(), image.getHeight(),
 				BufferedImage.TYPE_INT_RGB);// creation de l'image
@@ -82,39 +126,15 @@ public class Image {
 			}
 		}
 
-		grayscaleImagePath = "ressources" + File.separator + "images" + File.separator + getImgName(imgPath);// creation
-																												// du
-																												// chemin
-																												// de l
-																												// image
-																												// ressources\images\nomDeLimageEnCouleur.png
-																												// (la
-																												// difference
-																												// de
-																												// chemin
-																												// se
-																												// fait
-																												// sur
-																												// leur
-																												// chemin
-																												// absolue
-																												// toutes
-																												// les
-																												// images
-																												// en
-																												// gris
-																												// se
-																												// trouve
-																												// dans
-																												// le
-																												// repertoire
-																												// images
-																												// du
-																												// projet)
+		grayscaleImagePath = this.rename("Gris.jpg");
+		// du
+		// chemin
+		// de l
+		// image
 
-		ImageIO.write(grayscaleImage, "png", new File(grayscaleImagePath));
+		ImageIO.write(grayscaleImage, "jpg", new File(grayscaleImagePath));
 
-		return new Image(grayscaleImagePath, imgPath);
+		return new Image(grayscaleImagePath, imgName);
 
 	}
 
@@ -146,27 +166,26 @@ public class Image {
 
 	public BufferedImage getImg() {
 		return img;
-		
+
 	}
 
-	/*
-	 * methode pour afficher l'image
-	 */
 	public void display() {
-		JFrame frame = new JFrame();
-		frame.getContentPane().setLayout(new FlowLayout());
-		frame.getContentPane().add(new JLabel(new ImageIcon(img)));
-
-		frame.pack();
-		frame.setVisible(true);
-
+		Util.display(img);
 	}
 
 	// tests
 	public static void main(String[] args) throws IOException {
-		Image img = new Image("src/filtre/escalier.jpg", "test");
-		System.out.println(Arrays.toString(img.createHisto()));
-		DisplayStaskChart.main(args);
+		Image img = new Image("src/ressource/escalier1.jpg", "escalier");
+		img.createGrayscaleImage();
+		img.createNBImage(100);
+	}
+
+	public String rename(String name) {
+		String path = this.imgPath;
+		String[] pathDecoupe = path.split("/");
+		String result = pathDecoupe[0] + File.separator + pathDecoupe[1] + File.separator
+				+ pathDecoupe[2].substring(0, pathDecoupe[2].length() - 4) + name;
+		return result;
 
 	}
 }
