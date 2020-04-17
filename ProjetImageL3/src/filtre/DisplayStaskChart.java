@@ -16,11 +16,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class DisplayStaskChart extends Application {
-
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		//ajout d'une image
-		Image img = new Image("src/filtre/escalier.jpg", "dd");
+		//ajout d'une image 
+		Image img = new Image("src/ressource/escalier.jpg", "dd");
 		primaryStage.setTitle("Histogramme de l'image");
 		//histo de 0 à 100
 		CategoryAxis xAxis = new CategoryAxis();
