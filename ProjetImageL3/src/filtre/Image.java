@@ -16,7 +16,7 @@ public class Image {
 	private String srcPath;
 	private String imgPath;
 	private String imgName;
-	private BufferedImage img;// image qui va etre manipuler dans le code
+	private BufferedImage img;// image qui va etre manipule dans le code
 
 	public Image(String imgPath, String srcPath) throws IOException {
 		this.imgPath = imgPath;
