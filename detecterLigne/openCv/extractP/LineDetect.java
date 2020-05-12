@@ -13,12 +13,13 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import openCv.Test;
+import util.Util;
 
 public class LineDetect {
 
 	public static void main(String[] args) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		String default_file = "src/ressource/1.jpg";
+		String default_file = "src/ressource/wesh.png";
 
 		Mat src = Imgcodecs.imread(default_file, Imgcodecs.IMREAD_GRAYSCALE);
 		src = LineDetect.detectLine(src);
@@ -50,7 +51,7 @@ public class LineDetect {
 			Imgproc.line(control, new Point(val[0], val[1]), new Point(val[2], val[3]), new Scalar(0, 0, 255), 3,
 					Imgproc.LINE_AA);
 		}
-
+		//ajout de la premiere ligne
 		if (lines.get(0, 0) != null) {
 			double[] vec = lines.get(0, 0);
 			double[] valLine1 = new double[4];
@@ -65,11 +66,13 @@ public class LineDetect {
 			y_keeper_for_lines.add((int) valLine1[1]);
 
 		} else {
-			System.out.println("dd");
+		
 		}
 
 		boolean okey = true;
 
+		
+		int marche = 1;
 		for (int i = 1; i < lines.rows(); i++) {
 			double[] vec1 = lines.get(i, 0);
 			double[] val = new double[4];
@@ -79,19 +82,24 @@ public class LineDetect {
 			val[2] = dst.cols();
 			val[3] = ((float) vec1[1] - vec1[3]) / (vec1[0] - vec1[2]) * (dst.cols() - vec1[2]) + vec1[3];
 			for (int m : y_keeper_for_lines) {
-				if (Math.abs(m - val[1]) < 15)
+				if (Math.abs(m - val[1]) < 15 || val[1]<100 || Double.isInfinite(val[1]))//espacement des lignes
 					okey = false;
+				
 
 			}
 			if (okey) {
+				
 				Imgproc.line(out_img, new Point(0, val[1]), new Point(dst.cols(), val[1]), new Scalar(0, 0, 255), 3,
 						Imgproc.LINE_AA);
 				y_keeper_for_lines.add((int) val[1]);
+				marche++;
 
 			}
 			okey = true;
 
 		}
+		System.out.println(marche);
+		
 		return out_img;
 	}
 }

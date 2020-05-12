@@ -32,8 +32,14 @@ import util.Util;
  */
 public class Method1 extends Config {
 
-	public Method1(List<String> path) {
+	private boolean isResize;
+
+	private boolean isCrop;
+
+	public Method1(List<String> path, boolean resize, boolean crop) {
 		super(path);
+		this.isResize = resize;
+		this.isCrop = crop;
 
 	}
 
@@ -58,47 +64,61 @@ public class Method1 extends Config {
 	}
 
 	public void display() throws IOException {
-		// Redimension des images a
+		// Redimension des images si lhauteur est sup à 1500
 
-		for (int i = 0; i < super.getListImgPath().size(); i++) {
-			BufferedImage b = ImageIO.read(new File(super.getListImgPath().get(i)));
+		if (isResize) {
+			for (int i = 0; i < super.getListImgPath().size(); i++) {
+				BufferedImage b = ImageIO.read(new File(super.getListImgPath().get(i)));
+				
+				if(b.getHeight()>1500) {
+					
+					double coeff = b.getHeight()/1500;
+					b = Util.resize(b, (int)b.getHeight()/coeff, (int)b.getWidth()/coeff);
+					
+				}
+				
 
-			b = Util.resize(b, 700, 1000);
+				
 
-			Util.enregistreImage(b, super.getListImgPath().get(i));
+				Util.enregistreImage(b, super.getListImgPath().get(i));
+			}
 		}
 
 		// rogner vers la partie qui nous interesse (prend le plus grand rectangle
 		// contour)
+		if (isCrop) {
+			for (int i = 0; i < super.getListImgPath().size(); i++) {
+				// pre traitement de la matrice
+				// trouver le plus grand rectangle
+				Image img = new Image(super.getListImgPath().get(i), "");
+				Rect r = Pre_traitement_Ouverture.pTraitementOuverture(img);
 
-		for (int i = 0; i < super.getListImgPath().size(); i++) {
-			// pre traitement de la matrice
-			// trouver le plus grand rectangle
-			Rect r = Pre_traitement_Ouverture.pTraitementOuverture(new Image(super.getListImgPath().get(i), ""));
+				// roger le rectangle par apport a la zone qui nous interresss
+				// si limage est pas plus large que longue
+				if (r.area()<img.getImg().getHeight()*img.getImg().getWidth()) {
+					System.out.println("area : " + r.area());
+					Mat srcTemp = new Mat();
+					srcTemp = Imgcodecs.imread(super.getListImgPath().get(i), Imgcodecs.IMREAD_ANYCOLOR);
+					System.out.println("rectangle " + r.height + "  " + r.width + " " + r.x + "  " + r.y);
+					srcTemp = Util.rogne(srcTemp, r.x, r.y, r.height, r.width);
 
-			// roger le rectangle par apport a la zone qui nous interresss
-			//si limage est pas plus large que longue
-			if (r.width < r.height) {
-				System.out.println("area : " + r.area());
-				Mat srcTemp = new Mat();
-				srcTemp = Imgcodecs.imread(super.getListImgPath().get(i), Imgcodecs.IMREAD_ANYCOLOR);
-				System.out.println("rectangle " + r.height + "  " + r.width + " " + r.x + "  " + r.y);
-				srcTemp = Util.rogne(srcTemp, r.x, r.y, r.height, r.width);
+					BufferedImage b = (BufferedImage) HighGui.toBufferedImage(srcTemp);
+					System.out.println(i);
+					Util.enregistreImage(b, super.getListImgPath().get(i));
+					
+					
+					
+				}
 
-				BufferedImage b = (BufferedImage) HighGui.toBufferedImage(srcTemp);
-				System.out.println(i);
-				Util.enregistreImage(b, super.getListImgPath().get(i));
 			}
-
 		}
-
 	}
 
 	public static void main(String[] args) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		List<String> str = new ArrayList<String>();
-		str.add("src/ressource/escaliers/2.jpg");
-		Method1 t = new Method1(str);
+		str.add("src/ressource/escaliers/Imag1.jpg");
+		Method1 t = new Method1(str, true, true);
 		t.display();
 	}
 

@@ -101,11 +101,9 @@ public class Image {
 			}
 		}
 
-		grayscaleImagePath = Util.rename("NoirEtBlanc.jpg", this.imgPath);// creation
-		// du
-		// chemin
-		// de l
-		// image
+		grayscaleImagePath ="NoirEtBlanc.jpg";
+		System.out.println(grayscaleImagePath);
+		System.out.println(this.imgPath);
 
 		ImageIO.write(grayscaleImage, "jpg", new File(grayscaleImagePath));
 

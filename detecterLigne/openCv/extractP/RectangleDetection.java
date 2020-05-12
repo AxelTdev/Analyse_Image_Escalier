@@ -23,7 +23,7 @@ public class RectangleDetection {
 
 	public static void main(String[] args) throws IOException {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		String default_file = "src/ressource/1.jpg";
+		String default_file = "src/ressource/mmm.jpg";
 
 		Mat src = Imgcodecs.imread(default_file, Imgcodecs.IMREAD_ANYCOLOR);
 
@@ -66,6 +66,7 @@ public class RectangleDetection {
 
 		for (int i = 0; i < contours.size(); i++) {
 			contoursPoly[i] = new MatOfPoint2f();
+			
 			Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
 
 			boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));

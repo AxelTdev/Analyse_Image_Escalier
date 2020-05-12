@@ -60,13 +60,10 @@ public class Util {
 
 	public static void main(String[] args) throws Exception {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		String default_file = "src/ressource/2.jpg";
+		String default_file = "src/ressource/1.jpg";
 		Mat src = Imgcodecs.imread(default_file);
-		BufferedImage b = Util.resizeMat2B(src, 1000, 1500);
-		
-		Util.enregistreImage(b);
-
-
+		int t = Util.countLine(src);
+		System.out.println(Util.round(25 / (double) 2, 0));
 	}
 
 	/**
@@ -88,37 +85,35 @@ public class Util {
 
 		return System.getProperty("user.dir") + File.separator + name;
 	}
-	
+
 	public static int averageHisto(int[] histo) {
 		long deno = 0;
 		long numo = 0;
-		for(int i = 0; i < histo.length; i++) {
-			numo += (i*histo[i]);
-			deno +=histo[i];
+		for (int i = 0; i < histo.length; i++) {
+			numo += (i * histo[i]);
+			deno += histo[i];
 		}
-		
-		return (int) (numo/deno);
-		
-		
+
+		return (int) (numo / deno);
+
 	}
-	
+
 	public static int medianHisto(filtre.Image src) {
-		
-		long stop = (src.getImg().getHeight()*src.getImg().getWidth())/2;
-		
+
+		long stop = (src.getImg().getHeight() * src.getImg().getWidth()) / 2;
+
 		long count = 0;
-		for(int i = 0; i < src.createHisto().length; i++) {
-			count+= src.createHisto()[i];
-			if(stop < count) {
-				
+		for (int i = 0; i < src.createHisto().length; i++) {
+			count += src.createHisto()[i];
+			if (stop < count) {
+
 				count = i;
 				break;
 			}
 		}
-		
+
 		return (int) count;
-		
-		
+
 	}
 
 	/**
@@ -130,14 +125,14 @@ public class Util {
 	public static int countLine(Mat src) {
 
 		Boolean white = false;
-		int count = 0;
+		int count = 1;
 		// traverse l axe y
 		for (int i = 0; i < src.rows(); i++) {
 
-			double[] data = src.get(i, 150);
+			double[] data = src.get(i, src.width() / 2);
 
 			// si couleur blanche indiquer
-			if (data[0] == 255 && data[0] == data[2] && data[0] == data[1]) {
+			if (data[0] == 255) {
 
 				white = true;
 
@@ -151,8 +146,67 @@ public class Util {
 
 		}
 
+		return (int) Util.round(count / (double) 2, 0);
+
+	}
+
+	/**
+	 * meethode qui indique le nombre de lignes rouges rencontres
+	 * 
+	 * @param src la matrice
+	 * @return le nombre de lignes
+	 */
+	public static int countRedLine(Mat src) {
+
+		Boolean red = false;
+		int count = 0;
+		int c = 0;
+		// traverse l axe y
+		for (int i = 0; i < src.rows(); i++) {
+			
+			double[] data = src.get(i, 100);
+
+			// si couleur rouge indiquer
+			if (data[2] == 255 && data[1]==0 && data[0]==0) {
+				c++;
+				red = true;
+				System.out.println("red");
+
+			} 
+			System.out.println("notred");
+			if(c==5) {
+				count++;
+				c=0;
+			}
+
+		}
+
 		return count;
 
+	}
+
+	/**
+	 * permet d arrondir un double a un decimale pres
+	 * 
+	 * @param valeur   la valeur a arrondir
+	 * @param decimale la precision
+	 * @return la valeur arrondie
+	 */
+	public static double round(double valeur, int decimale) {
+
+		if (decimale < 0) {
+
+			throw new IllegalArgumentException();
+
+		}
+
+		long factor = (long) Math.pow(10, decimale);
+
+		valeur = valeur * factor;
+
+		long tmp = Math.round(valeur);
+
+		return (double) tmp / factor;
 	}
 
 	/**
@@ -172,32 +226,15 @@ public class Util {
 		return path;
 	}
 
-	/**
-	 * methode qui retourne le rectangle avec la plsu grosse aire
-	 * 
-	 * @param data un tableau de rectangles
-	 * @return le plus grand rectangle
-	 */
-	public static Rect maxRectArea(Rect[] data) {
-		Rect max = data[0];
-		for (int i = 1; i < data.length; i++) {
-			if (data[i].area() > max.area()) {
-				max = data[i];
-			}
-		}
-		return max;
-	}
-	
-public static Mat enleveNoir(Mat src) {
-		
-		Mat srcT = src;
+	public static Mat enleveNoir(Mat src) {
+
+		Mat srcT = src.clone();
 
 		for (int i = 0; i < srcT.rows(); i++) {
 			for (int j = 0; j < srcT.cols(); j++) {
 
 				double[] data = srcT.get(i, j);
 
-				
 				if (data[2] == 255) {
 					if (data[1] == 255) {
 						data[0] = 0;
@@ -221,6 +258,22 @@ public static Mat enleveNoir(Mat src) {
 			}
 		}
 		return srcT;
+	}
+
+	/**
+	 * methode qui retourne le rectangle avec la plsu grosse aire
+	 * 
+	 * @param data un tableau de rectangles
+	 * @return le plus grand rectangle
+	 */
+	public static Rect maxRectArea(Rect[] data) {
+		Rect max = data[0];
+		for (int i = 1; i < data.length; i++) {
+			if (data[i].area() > max.area()) {
+				max = data[i];
+			}
+		}
+		return max;
 	}
 
 	public static String rename(String name, String path) {
@@ -300,9 +353,12 @@ public static Mat enleveNoir(Mat src) {
 
 	}
 
-	public static BufferedImage resize(BufferedImage img, int newW, int newH) {
-		Image tmp = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
-		BufferedImage dimg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+	public static BufferedImage resize(BufferedImage img, double newW, double newH) {
+
+		int h = (int) newH;
+		int w = (int) newW;
+		Image tmp = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+		BufferedImage dimg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
 		Graphics2D g2d = dimg.createGraphics();
 		g2d.drawImage(tmp, 0, 0, null);
@@ -310,18 +366,18 @@ public static Mat enleveNoir(Mat src) {
 
 		return dimg;
 	}
-	
+
 	public static BufferedImage resizeMat2B(Mat img, int newW, int newH) {
 		double percent_scale;
 		System.out.println(img.height());
-		if(img.height()>=newH) {
-			percent_scale =(double) img.height()/(double)newH;
+		if (img.height() >= newH) {
+			percent_scale = (double) img.height() / (double) newH;
 			System.out.println(percent_scale);
-				 Imgproc.resize(img, img, new Size(img.rows()*percent_scale, img.rows()*percent_scale), 0, 0, 
-				         Imgproc.INTER_AREA);
+			Imgproc.resize(img, img, new Size(img.rows() * percent_scale, img.rows() * percent_scale), 0, 0,
+					Imgproc.INTER_AREA);
 
 		}
-		
+
 		return (BufferedImage) HighGui.toBufferedImage(img);
 	}
 

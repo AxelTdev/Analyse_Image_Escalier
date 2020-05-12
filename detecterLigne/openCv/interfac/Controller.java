@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.temporal.ValueRange;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -23,6 +24,7 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.HighGui;
 
 import config.Method1;
+import config.Method2;
 import extractP.LineDetect;
 import filtre.DisplayStaskChart;
 import javafx.animation.FadeTransition;
@@ -30,6 +32,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -41,19 +44,27 @@ import javafx.scene.chart.StackedBarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TableView.ResizeFeatures;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -93,35 +104,81 @@ public class Controller implements Initializable {
 	@FXML
 	private Pane root;
 
+	@FXML
+	private CheckBox resize;
+
+	@FXML
+	private CheckBox crop;
+
+	@FXML
+
+	private Label result1;
+
+	@FXML
+
+	private Label result;
+
+	@FXML
+
+	private Label gFilterL;
+
+	@FXML
+
+	private Label openingL;
+
+	@FXML
+
+	private CheckBox option1;
+
+	@FXML
+
+	private CheckBox option2;
+
+	@FXML
+
+	private CheckBox bina;
+
+	@FXML
+
+	private Label errorAL;
+
+	@FXML
+
+	private Label closingL;
+
+	@FXML
+
+	private Slider slideError;
+
+	@FXML
+
+	private Slider slideGaussian;
+
+	@FXML
+
+	private Slider slideOpening;
+
+	@FXML
+
+	private Slider slideClosing;
+
+	@FXML
+
+	private FlowPane flowData;
+	
+	private int countBon;
+
+	@FXML
+
+	private Label tx;
 	private List<Integer> resultAttentdu = new ArrayList<Integer>();
 
 	private List<String> pathImage = new ArrayList<>();
 
 	@FXML
-	private MenuItem ajoutUneImage;
-
-	@FXML
-	private ImageView imageView1;
-
-	@FXML
-	private Rectangle cache1;
-
-	@FXML
-	private ImageView imageView2;
-
-	@FXML
-	private Rectangle cache2;
-
-	private String path;
-
-	private Image imgSrc;
-
-	@FXML
 	private MenuItem histo;
 
 	private List<Integer> resultatObtenuM1 = new ArrayList<Integer>();
-
-	private List<Integer> resultatObtenuM2 = new ArrayList<Integer>();
 
 	@FXML
 	private MenuItem helpBug;
@@ -130,16 +187,7 @@ public class Controller implements Initializable {
 	private MenuItem helpJavadoc;
 
 	@FXML
-	private ImageView source1;
-
-	@FXML
-	private MenuItem helpManuelUtilisation;
-
-	@FXML
 	private MenuItem data;
-
-	@FXML
-	private Label step;
 
 	@FXML
 	private MenuItem imageData;
@@ -155,126 +203,125 @@ public class Controller implements Initializable {
 			this.splashscreen();
 		}
 
-		ajoutUneImage.setOnAction(((event) -> {
-
-			FileInputStream input = null;
-			try {
-				path = this.fileChooserToPath("Search image to analyze");
-				input = new FileInputStream(path);
-			} catch (IOException e1) {
-
-				e1.printStackTrace();
-			}
-			Image image = new Image(input);
-
-			this.imgSrc = image;
-
-			source1.setImage(image);
-
-			if (source1 != null) {
-				cache1.setVisible(false);
-				cache2.setVisible(false);
-			}
-
-		}));
-
+		/**
+		 * cas ou utilisateur veut ajouter des images srouces
+		 */
 		imageData.setOnAction(((event) -> {
-
-			this.pathImage = this.getPathImage((this.directoryChosser("Choose a directory with images")));
-			this.methode1Process(this.pathImage);
 			
-			if(this.pathImage.size()>0) {
-				Method1 t = new Method1(this.pathImage);
+			if (resultAttentdu.size() > 0) {
+				this.pathImage = this.getPathImage((this.directoryChosser("Choose a directory with images")));
 				
-				try {
-					t.display();
-				} catch (IOException e) {
-					
-					e.printStackTrace();
-				}
 			}
 
 		}));
 
-		data.setOnAction(((event) -> {
+		this.slideClosing.setOnDragDetected(((event) -> {
+			this.closingL.setText("Closing : " + Math.round(this.slideClosing.getValue()));
 
+		}));
+
+		this.slideOpening.setOnDragDetected(((event) -> {
+			this.openingL.setText("Opening : " + Math.round(this.slideOpening.getValue()));
+
+		}));
+
+		this.slideError.setOnDragDetected(((event) -> {
+			this.errorAL.setText("Error accepted : " + Math.round(this.slideError.getValue()));
+			// declenche le programme
+			this.go();
+		}));
+		
+		this.slideGaussian.setOnDragDetected(((event)->{
+			this.gFilterL.setText("Gaussian filter : " +Math.round(this.slideGaussian.getValue()));
+		}));
+
+		/**
+		 * cas ou utilisateur veut ajouter des resultats attendus
+		 */
+		data.setOnAction(((event) -> {
+			this.resultAttentdu.clear();
 			this.resultAttentdu = Util.readeDataFile(this.fileChooserToPath("Search data File's"));
 
 		}));
-
+		/**
+		 * 
+		 */
 		histo.setOnAction(((event) -> {
-			if (this.imgSrc != null) {
-				Stage st = new Stage();
-				CategoryAxis xAxis = new CategoryAxis();
-				xAxis.setLabel("Valeurs");
 
-				NumberAxis yAxis = new NumberAxis();
-				yAxis.setLabel("Occurence");
+			// demande de limage
 
-				StackedBarChart<String, Double> stackedBarChart = new StackedBarChart(xAxis, yAxis);
+			String path1 = this.fileChooserToPath("Choose image to analyse");
+			Stage st = new Stage();
 
-				XYChart.Series<String, Double> dataSeries1 = new XYChart.Series<>();
+			CategoryAxis xAxis = new CategoryAxis();
+			xAxis.setLabel("Valeurs");
 
-				// histo de l'image
-				int[] histoImage = null;
-				try {
-					histoImage = new filtre.Image(path, "").createHisto();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				for (int i = 0; i < 100; i++) {
-					dataSeries1.getData().add(new XYChart.Data(i + "", histoImage[i]));
-				}
-				// histo de 100 à 200
-				CategoryAxis xAxis2 = new CategoryAxis();
-				xAxis2.setLabel("Valeurs");
+			NumberAxis yAxis = new NumberAxis();
+			yAxis.setLabel("Occurence");
 
-				NumberAxis yAxis2 = new NumberAxis();
-				yAxis2.setLabel("Occurence");
+			StackedBarChart<String, Double> stackedBarChart = new StackedBarChart(xAxis, yAxis);
 
-				StackedBarChart<String, Double> stackedBarChart1 = new StackedBarChart(xAxis2, yAxis2);
+			XYChart.Series<String, Double> dataSeries1 = new XYChart.Series<>();
 
-				XYChart.Series<String, Double> dataSeries2 = new XYChart.Series<>();
-
-				// histo de l'image
-
-				for (int i = 100; i < 200; i++) {
-					dataSeries2.getData().add(new XYChart.Data(i + "", histoImage[i]));
-				}
-				// histo de 200 à 250
-				CategoryAxis xAxis3 = new CategoryAxis();
-				xAxis3.setLabel("Valeurs");
-
-				NumberAxis yAxis3 = new NumberAxis();
-				yAxis3.setLabel("Occurence");
-
-				StackedBarChart<String, Double> stackedBarChart2 = new StackedBarChart(xAxis3, yAxis3);
-
-				XYChart.Series<String, Double> dataSeries3 = new XYChart.Series<>();
-
-				// histo de l'image
-
-				for (int i = 200; i < 256; i++) {
-					dataSeries3.getData().add(new XYChart.Data(i + "", histoImage[i]));
-				}
-
-				stackedBarChart.getData().add(dataSeries1);
-				stackedBarChart1.getData().add(dataSeries2);
-				stackedBarChart2.getData().add(dataSeries3);
-
-				VBox vb = new VBox();
-
-				vb.getChildren().addAll(stackedBarChart, stackedBarChart1, stackedBarChart2);
-
-				Scene scene = new Scene(vb, 400, 200);
-
-				st.setScene(scene);
-				st.setHeight(300);
-				st.setWidth(1200);
-
-				st.show();
+			// histo de l'image
+			int[] histoImage = null;
+			try {
+				histoImage = new filtre.Image(path1, "").createHisto();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			for (int i = 0; i < 100; i++) {
+				dataSeries1.getData().add(new XYChart.Data(i + "", histoImage[i]));
+			}
+			// histo de 100 à 200
+			CategoryAxis xAxis2 = new CategoryAxis();
+			xAxis2.setLabel("Valeurs");
+
+			NumberAxis yAxis2 = new NumberAxis();
+			yAxis2.setLabel("Occurence");
+
+			StackedBarChart<String, Double> stackedBarChart1 = new StackedBarChart(xAxis2, yAxis2);
+
+			XYChart.Series<String, Double> dataSeries2 = new XYChart.Series<>();
+
+			// histo de l'image
+
+			for (int i = 100; i < 200; i++) {
+				dataSeries2.getData().add(new XYChart.Data(i + "", histoImage[i]));
+			}
+			// histo de 200 à 250
+			CategoryAxis xAxis3 = new CategoryAxis();
+			xAxis3.setLabel("Valeurs");
+
+			NumberAxis yAxis3 = new NumberAxis();
+			yAxis3.setLabel("Occurence");
+
+			StackedBarChart<String, Double> stackedBarChart2 = new StackedBarChart(xAxis3, yAxis3);
+
+			XYChart.Series<String, Double> dataSeries3 = new XYChart.Series<>();
+
+			// histo de l'image
+
+			for (int i = 200; i < 256; i++) {
+				dataSeries3.getData().add(new XYChart.Data(i + "", histoImage[i]));
+			}
+
+			stackedBarChart.getData().add(dataSeries1);
+			stackedBarChart1.getData().add(dataSeries2);
+			stackedBarChart2.getData().add(dataSeries3);
+
+			VBox vb = new VBox();
+
+			vb.getChildren().addAll(stackedBarChart, stackedBarChart1, stackedBarChart2);
+
+			Scene scene = new Scene(vb, 400, 200);
+
+			st.setScene(scene);
+			st.setHeight(300);
+			st.setWidth(1200);
+
+			st.show();
 
 		}));
 
@@ -284,25 +331,7 @@ public class Controller implements Initializable {
 
 				// lecture du fichier
 
-				desktop.browse(new URI("https://proemial-walk.000webhostapp.com/"));
-
-			} catch (IOException | URISyntaxException e) {
-
-				e.printStackTrace();
-			}
-
-		}));
-
-		/**
-		 * cas ou l utilisateur clique sur l'aide manuel utilisation
-		 */
-		helpManuelUtilisation.setOnAction(((event) -> {
-
-			try {
-
-				// lecture du fichier de la doc
-
-				desktop.browse(new URI("https://proemial-walk.000webhostapp.com/Manuel_d_utilisation.pdf"));
+				desktop.browse(new URI("https://proemial-walk.000webhostapp.com/ccc"));
 
 			} catch (IOException | URISyntaxException e) {
 
@@ -447,29 +476,7 @@ public class Controller implements Initializable {
 
 	}
 
-	private void methode1Process(List<String> pathI) {
 
-		for (int i = 0; i < pathI.size(); i++) {
-			// creation une matrice pour chaque image
-			try {
-				// Mat src = Erosion.getErosionDilation(new filtre.Image(this.pathImage.get(i),
-				// ""));
-
-				// application de la methode1
-
-				Mat src = Test.method1(pathI.get(i), false, 160);
-				Util.resize(src, 536, 750);
-				//this.resultatObtenuM1.add(Erosion.countLine(Dilatation.enleveNoir(src)));
-
-			} catch (IOException e) {
-
-				e.printStackTrace();
-			}
-
-		}
-
-		System.out.println(this.resultatObtenuM1);
-	}
 
 	private List<String> getPathImage(File dossier) {
 		List<String> result = new ArrayList<String>();
@@ -494,4 +501,181 @@ public class Controller implements Initializable {
 
 		return selectedDirectory;
 	}
+
+	private Pane paneFactory(BufferedImage b, int expectedV, int resultV, boolean isCorrect)
+			throws FileNotFoundException {
+		Pane p = new Pane();
+
+		GridPane gp = new GridPane();
+
+		gp.setGridLinesVisible(true);
+		gp.setLayoutX(15.0);
+		gp.setLayoutY(14.0);
+		gp.setPrefHeight(205.0);
+		gp.setPrefWidth(156.0);
+
+		ColumnConstraints col1 = new ColumnConstraints();
+
+		col1.setHgrow(Priority.SOMETIMES);
+		col1.setMinWidth(10.0);
+		col1.setPrefWidth(100.0);
+
+		RowConstraints row1 = new RowConstraints();
+
+		row1.setMaxHeight(204.0);
+		row1.setMinHeight(10.0);
+		row1.setPrefHeight(145.0);
+		row1.setVgrow(Priority.SOMETIMES);
+
+		RowConstraints row2 = new RowConstraints();
+
+		row2.setMaxHeight(84.0);
+		row2.setMinHeight(10.0);
+		row2.setPrefHeight(40.0);
+		row2.setVgrow(Priority.SOMETIMES);
+
+		RowConstraints row3 = new RowConstraints();
+
+		row3.setMaxHeight(54.0);
+		row3.setMinHeight(10.0);
+		row3.setPrefHeight(28.0);
+		row3.setVgrow(Priority.SOMETIMES);
+
+		RowConstraints row4 = new RowConstraints();
+
+		row4.setMaxHeight(54.0);
+		row4.setMinHeight(10.0);
+		row4.setPrefHeight(30.0);
+		row4.setVgrow(Priority.SOMETIMES);
+
+		gp.getColumnConstraints().add(col1);
+
+		gp.getRowConstraints().addAll(row1, row2, row3, row4);
+
+		ImageView imgV1 = new ImageView();
+
+		imgV1.setFitHeight(136.0);
+		imgV1.setFitWidth(158.0);
+		imgV1.setPickOnBounds(true);
+		imgV1.setSmooth(true);
+
+		Image img = SwingFXUtils.toFXImage(b, null);
+		imgV1.setImage(img);
+
+		gp.add(imgV1, 0, 0);
+
+		Label expected = new Label("Expected : " + expectedV);
+
+		expected.setPrefHeight(23.0);
+		expected.setPrefWidth(239.0);
+		expected.setTextAlignment(TextAlignment.CENTER);
+
+		Insets one = new Insets(0.0f, 0.0f, 0.0f, 45.0f);
+
+		gp.add(expected, 0, 1);
+
+		GridPane.setMargin(expected, one);
+
+		Label result = new Label("Result : " + resultV);
+
+		result.setPrefHeight(23.0);
+		result.setPrefWidth(239.0);
+		result.setTextAlignment(TextAlignment.CENTER);
+
+		gp.add(result, 0, 2);
+		GridPane.setMargin(result, one);
+
+		ImageView imgV2 = new ImageView();
+
+		imgV2.setFitHeight(29.0);
+		imgV2.setFitWidth(242.0);
+		imgV2.setPickOnBounds(true);
+		imgV2.setPreserveRatio(true);
+		FileInputStream input = null;
+		try {
+			// ImageIO.read(new File("ressource/splashNB.jpg"));
+			input = new FileInputStream("src/ressource/splashNB.jpg");
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		if (isCorrect) {
+			input = new FileInputStream("src/ressource/accepted_48.png");
+
+		} else {
+			input = new FileInputStream("src/ressource/cancel_48.png");
+
+		}
+		Image image = new Image(input);
+		imgV2.setImage(image);
+		Insets insetsGauche = new Insets(0.0f, 0.0f, 0.0f, 65.0f);
+		GridPane.setMargin(imgV2, insetsGauche);
+		gp.add(imgV2, 0, 3);
+
+		p.getChildren().addAll(gp);
+		p.setStyle("-fx-background-color: black");
+
+		return p;
+
+	}
+
+	private void go() {
+		countBon = 0;
+
+			if (this.pathImage.size() > 0) {
+
+				Method1 t = new Method1(this.pathImage, resize.isSelected(), crop.isSelected());
+			
+				Method2 t1 = new Method2(this.pathImage, (int) slideOpening.getValue(), (int) slideClosing.getValue(),
+						(int) slideGaussian.getValue(), (int) slideGaussian.getValue(), this.bina.isSelected(),
+						this.option1.isSelected());
+
+				try {
+					System.out.println("nb path"+  t1.getListImgPath().size());
+					//t.display();
+					t1.display();
+					System.out.println(t1.getResultatObtenu());
+					System.out.println("nb path"+  t1.getListImgPath().size());
+					System.out.println(this.resultAttentdu);
+					/**
+					 * remplissage du FlowPane
+					 * 
+					 */
+					flowData.getChildren().clear();
+					boolean isCorrect;
+					flowData.setHgap(10);
+					flowData.setVgap(10);
+					for (int i = 0; i < t1.getListImgPath().size(); i++) {
+						isCorrect = this.resultAttentdu.get(i).equals(t1.getResultatObtenu().get(i));
+						
+						if(ValueRange.of(this.resultAttentdu.get(i)-(int)this.slideError.getValue() -1, this.resultAttentdu.get(i)+(int)this.slideError.getValue()+1).isValidIntValue(t1.getResultatObtenu().get(i))) {
+							countBon++;
+						}
+						flowData.getChildren().add(this.paneFactory((BufferedImage) t1.getTransfoImgList().get(i),
+								this.resultAttentdu.get(i), t1.getResultatObtenu().get(i), isCorrect));
+					}
+					
+					
+
+				} catch (IOException e) {
+
+					e.printStackTrace();
+				}
+				
+				//remplit tableau
+				
+				this.result.setText(countBon+"");
+				
+				this.result1.setText((this.pathImage.size()-countBon)+"");
+				System.out.println("on a plutot " + countBon);
+				System.out.println("on a plutot " + this.pathImage.size());
+				this.tx.setText(Math.round(((double)countBon/(double)this.pathImage.size()*100))+"%");
+			}
+			
+			
+		}
+
+	
+
 }

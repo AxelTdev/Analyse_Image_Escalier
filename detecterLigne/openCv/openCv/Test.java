@@ -22,6 +22,7 @@ import com.sun.javafx.geom.Rectangle;
 import extractP.LineDetect;
 import extractP.RectangleDetection;
 import filtre.Image;
+import util.Util;
 
 public class Test {
 
@@ -54,13 +55,29 @@ public class Test {
 
 		Mat dst = new Mat(), out_img = new Mat(), control = new Mat();
 		Imgproc.Canny(src, dst, 80, 240, 3);
+		
+		
+		int kernelSize = 4;
+		// Preparer la matrice kernel
+		Mat element = Imgproc.getStructuringElement(Imgproc.CV_SHAPE_RECT,
+				new Size(2 * kernelSize + 1, 2 * kernelSize + 1), new Point(kernelSize, kernelSize));
 
-		Rect r = null;
+		// Application de louverture (1.erosion 2/dilatation)
+		//Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_CLOSE, element);
+		kernelSize = 0;
+		element = Imgproc.getStructuringElement(Imgproc.CV_SHAPE_RECT,
+				new Size(2 * kernelSize + 1, 2 * kernelSize + 1), new Point(kernelSize, kernelSize));
+		// Application de louverture (1.erosion 2/dilatation)
+		//Imgproc.morphologyEx(dst, dst, Imgproc.MORPH_OPEN, element);
 		Object[] result = RectangleDetection.rectangleDetect(dst);
 
-		// ercire les recctangles
-		dst = RectangleDetection.drawRectangle((Rect[]) result[1], (Mat) result[2], (MatOfPoint2f[]) result[3]);
-		r = (Rect) result[0];
+		result = RectangleDetection.rectangleDetect(dst);
+		
+		//dst  = RectangleDetection.drawRectangle((Rect[])result[1], src, (MatOfPoint2f[])result[3]);
+//System.out.println(Util.countLine(dst));
+	dst = LineDetect.detectLine(dst);
+		
+		
 
 		return dst;
 
